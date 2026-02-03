@@ -51,7 +51,7 @@ reqwest = { version = "0.12", default-features = false, features = [
     "cookies",
     "multipart",
 ] }
-bytes = "1.10"
+bytes = "1.11"
 
 # [workspace.dependencies.windows]
 
