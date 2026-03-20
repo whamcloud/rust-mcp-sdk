@@ -75,16 +75,16 @@ impl HyperRuntime {
         let server_handle = server.server_handle();
 
         let server_task = tokio::spawn(async move {
-            #[cfg(feature = "ssl")]
+            #[cfg(any(feature = "ssl", feature = "tls-no-provider"))]
             if server.options.enable_ssl {
                 server.start_ssl(addr).await
             } else {
                 server.start_http(addr).await
             }
 
-            #[cfg(not(feature = "ssl"))]
+            #[cfg(not(any(feature = "ssl", feature = "tls-no-provider")))]
             if server.options.enable_ssl {
-                panic!("SSL requested but the 'ssl' feature is not enabled");
+                panic!("SSL requested but neither the 'ssl' nor 'tls-no-provider' feature is enabled");
             } else {
                 server.start_http(addr).await
             }

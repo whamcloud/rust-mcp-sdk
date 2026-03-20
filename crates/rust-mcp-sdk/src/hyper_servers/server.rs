@@ -24,7 +24,7 @@ use crate::{
 };
 use crate::{mcp_http::Middleware, schema::InitializeResult};
 use axum::Router;
-#[cfg(feature = "ssl")]
+#[cfg(any(feature = "ssl", feature = "tls-no-provider"))]
 use axum_server::tls_rustls::RustlsConfig;
 use axum_server::Handle;
 use rust_mcp_schema::schema_utils::{ClientMessage, ServerMessage};
@@ -462,7 +462,7 @@ impl HyperServer {
     ///
     /// # Returns
     /// * `TransportServerResult<()>` - Ok if the server starts successfully, Err otherwise
-    #[cfg(feature = "ssl")]
+    #[cfg(any(feature = "ssl", feature = "tls-no-provider"))]
     pub(crate) async fn start_ssl(self, addr: SocketAddr) -> TransportServerResult<()> {
         let config = RustlsConfig::from_pem_file(
             self.options.ssl_cert_path.as_deref().unwrap_or_default(),
