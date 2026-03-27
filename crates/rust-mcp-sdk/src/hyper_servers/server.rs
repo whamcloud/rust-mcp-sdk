@@ -148,6 +148,11 @@ pub struct HyperServerOptions {
     /// Optional observer for incoming/outgoing messages.
     /// Implementations should be fast and preferably non-blocking.
     pub message_observer: Option<Arc<dyn McpObserver<ClientMessage, ServerMessage>>>,
+
+    /// Enable signal handler for SIGTERM/SIGINT (default: true)
+    /// When enabled, the server will automatically shut down gracefully on receiving SIGTERM or SIGINT.
+    /// Set to false if you want to manage shutdown externally.
+    pub enable_signal_handler: bool,
 }
 
 impl HyperServerOptions {
@@ -291,6 +296,7 @@ impl Default for HyperServerOptions {
             health_endpoint: None,
             health_handler: None,
             message_observer: None,
+            enable_signal_handler: true,
         }
     }
 }
@@ -473,12 +479,14 @@ impl HyperServer {
 
         tracing::info!("{}", self.server_info(Some(addr)).await?);
 
-        // Spawn a task to trigger shutdown on signal
-        let handle_clone = self.handle.clone();
-        let state_clone = self.state().clone();
-        tokio::spawn(async move {
-            shutdown_signal(handle_clone, state_clone).await;
-        });
+        // Spawn a task to trigger shutdown on signal (if enabled)
+        if self.options.enable_signal_handler {
+            let handle_clone = self.handle.clone();
+            let state_clone = self.state().clone();
+            tokio::spawn(async move {
+                shutdown_signal(handle_clone, state_clone).await;
+            });
+        }
 
         let handle_clone = self.handle.clone();
         axum_server::bind_rustls(addr, config)
